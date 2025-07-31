@@ -40,7 +40,7 @@ export default function ProfileScreen() {
             
             <View style={styles.contactInfo}>
               <View style={styles.contactItem}>
-                <Text style={styles.contactIcon}>✉</Text>
+                <Text style={styles.contactIcon}>✉️</Text>
                 <Text style={styles.contactText}>rakeshrayk@gmail.com</Text>
               </View>
               
@@ -49,65 +49,15 @@ export default function ProfileScreen() {
                 <Text style={styles.contactText}>+91-8895883488</Text>
               </View>
               
-              <View style={styles.contactItem}>
-                <Text style={styles.contactIcon}>📍</Text>
-                <Text style={styles.contactText}>Bhubaneswar, Odisha</Text>
-              </View>
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>LOGOUT</Text>
+          </TouchableOpacity>
             </View>
           </View>
 
-          {/* Profile Options */}
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.optionItem}>
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>🔔</Text>
-                <Text style={styles.optionText}>Notifications</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
+        
 
-            <TouchableOpacity style={styles.optionItem}>
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>📊</Text>
-                <Text style={styles.optionText}>My Scan History</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem}>
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>⚙️</Text>
-                <Text style={styles.optionText}>Settings</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem}>
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>❓</Text>
-                <Text style={styles.optionText}>Help & Support</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem}>
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>ℹ️</Text>
-                <Text style={styles.optionText}>About</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>LOGOUT</Text>
-          </TouchableOpacity>
-
-          {/* Bottom indicator */}
-          <View style={styles.bottomIndicator}>
-            <Text style={styles.loginSuccess}>● Login Successfully !!</Text>
-          </View>
+         
         </View>
       </ScrollView>
 
@@ -126,14 +76,16 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#00BFA5',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingVertical: 40,
+    borderRadius:40,
+    justifyContent:"center",
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
+    top:10,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#ffffff',
   },
   content: {
     flex: 1,
@@ -141,25 +93,30 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 30,
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
+    top:40,
+  backgroundColor: '#FFFFFF',
+  borderColor: '#000000', 
+  borderWidth: 4,          
+  borderRadius: 20,
+  padding: 30,
+  alignItems: 'center',
+  marginBottom: 20,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  elevation: 5,
+},
+
   avatarContainer: {
     position: 'relative',
-    marginBottom: 20,
+    marginBottom: -50,
+    top:-80,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#00BFA5',
     justifyContent: 'center',
     alignItems: 'center',
@@ -246,16 +203,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   logoutButton: {
+    top:20,
     backgroundColor: '#00BFA5',
     paddingVertical: 15,
-    borderRadius: 25,
+    borderRadius: 0,
     alignItems: 'center',
     marginBottom: 20,
+    width:100,
+    left:90,
   },
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+    
   },
   bottomIndicator: {
     alignItems: 'center',

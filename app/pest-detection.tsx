@@ -1,6 +1,5 @@
-// app/pest-detection.tsx
 import BottomNavigation from '@/components/BottomNavigation';
-import { router } from 'expo-router';
+import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import {
   SafeAreaView,
@@ -14,122 +13,121 @@ type DetectedPest = {
   name: string;
   description: string;
   treatment: string;
-  image: string;
+  image: any;
 };
 
 export default function PestDetectionScreen() {
   const [detectedPest, setDetectedPest] = useState<DetectedPest | null>(null);
 
   const mockDetection = () => {
-    // Simulate pest detection
     setDetectedPest({
       name: 'RICE LEAF ROLLER',
       description: 'DETECTED',
       treatment: 'PLEASE USE CHLORANTRANILIPROLE OF 150-300 ML/HA',
-      image: '🌾'
+      image: require('../assets/images/pot.png'),
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Plant Pest Detection</Text>
       </View>
 
       <View style={styles.content}>
         {!detectedPest ? (
-          // Initial state
           <View style={styles.initialState}>
             <View style={styles.iconContainer}>
-              <View style={styles.leafIcon}>
-                <Text style={styles.leafEmoji}>🐛</Text>
-              </View>
+              <Image
+                source={require("../assets/images/pestt.png")}
+                style={styles.leafIcon}
+              />
             </View>
-            
+
             <Text style={styles.scanText}>Scan For Pest</Text>
-            
+
             <View style={styles.buttonContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.cameraButton}
                 onPress={mockDetection}
               >
-                <Text style={styles.cameraIcon}>📷</Text>
+                <Image
+                  source={require("../assets/images/cam.png")}
+                  style={styles.iconImage}
+                />
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.galleryButton}>
-                <Text style={styles.galleryIcon}>🖼️</Text>
+                <Image
+                  source={require("../assets/images/gal.png")}
+                  style={styles.iconImage}
+                />
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          // Detection result state
           <View style={styles.resultState}>
             <View style={styles.resultImageContainer}>
-              <Text style={styles.resultImage}>{detectedPest.image}</Text>
+              <Image
+                source={detectedPest.image}
+                style={styles.resultDetectedImage}
+              />
             </View>
-            
+
             <Text style={styles.pestName}>{detectedPest.name}</Text>
             <Text style={styles.pestStatus}>{detectedPest.description}</Text>
-            
+
             <View style={styles.treatmentContainer}>
               <Text style={styles.treatmentText}>{detectedPest.treatment}</Text>
             </View>
-            
+
             <View style={styles.productContainer}>
               <View style={styles.productBox}>
                 <Text style={styles.productName}>Rajac</Text>
                 <Text style={styles.productSubname}>Systemic Insecticide</Text>
               </View>
             </View>
-            
+
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cameraButton}>
-                <Text style={styles.cameraIcon}>📷</Text>
+                <Image
+                  source={require("../assets/images/cam.png")}
+                  style={styles.iconImage}
+                />
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.galleryButton}>
-                <Text style={styles.galleryIcon}>🖼️</Text>
+                <Image
+                  source={require("../assets/images/gal.png")}
+                  style={styles.iconImage}
+                />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity style={styles.moreInfoButton}>
-              <Text style={styles.moreInfoText}>CLICK ON PEST NAME TO KNOW MORE ABOUT PEST</Text>
+              <Text style={styles.moreInfoText}>
+                CLICK ON PEST NAME TO KNOW MORE ABOUT PEST
+              </Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
-      
+
       <BottomNavigation />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: {
     backgroundColor: '#00BFA5',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingVertical: 30,
+    paddingTop: 35,
+    borderRadius: 40,
+    justifyContent: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  backArrow: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
   },
   headerTitle: {
     fontSize: 20,
@@ -139,7 +137,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    paddingBottom: 100, // Extra padding for bottom navigation
+    paddingBottom: 100,
   },
   initialState: {
     flex: 1,
@@ -150,19 +148,14 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   leafIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  leafEmoji: {
-    fontSize: 40,
+    width: 180,
+    height: 180,
+    resizeMode: 'contain',
   },
   scanText: {
     fontSize: 18,
-    color: '#00BFA5',
+    backgroundColor:"#00BFA5",
+    color: '#FFFFFF',
     marginBottom: 40,
     fontWeight: '500',
   },
@@ -174,23 +167,23 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#00BFA5',
+    gap:10,
+    right:10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   galleryButton: {
     width: 60,
     height: 60,
+    left:10,
     borderRadius: 30,
-    backgroundColor: '#2196F3',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cameraIcon: {
-    fontSize: 24,
-  },
-  galleryIcon: {
-    fontSize: 24,
+  iconImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
   },
   resultState: {
     flex: 1,
@@ -205,9 +198,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    overflow: 'hidden',
   },
-  resultImage: {
-    fontSize: 40,
+  resultDetectedImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
   },
   pestName: {
     fontSize: 18,

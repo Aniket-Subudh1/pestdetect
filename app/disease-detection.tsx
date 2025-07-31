@@ -1,6 +1,5 @@
-// app/disease-detection.tsx
 import BottomNavigation from '@/components/BottomNavigation';
-import { router } from 'expo-router';
+import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import {
   SafeAreaView,
@@ -9,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 interface DetectedDisease {
   name: string;
   description: string;
@@ -33,12 +31,6 @@ export default function DiseaseDetectionScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Plant Disease Detection</Text>
       </View>
 
@@ -47,24 +39,31 @@ export default function DiseaseDetectionScreen() {
           // Initial state
           <View style={styles.initialState}>
             <View style={styles.iconContainer}>
-              <View style={styles.leafIcon}>
-                <Text style={styles.leafEmoji}>🌿</Text>
-              </View>
+               <Image
+                 source={require("../assets/images/pot.png")}
+                 style={styles.leafIcon}
+                            />
             </View>
             
             <Text style={styles.scanText}>Scan For Disease</Text>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity 
-                style={styles.cameraButton}
-                onPress={mockDetection}
-              >
-                <Text style={styles.cameraIcon}>📷</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.galleryButton}>
-                <Text style={styles.galleryIcon}>🖼️</Text>
-              </TouchableOpacity>
+              <TouchableOpacity
+                             style={styles.cameraButton}
+                             onPress={mockDetection}
+                           >
+                             <Image
+                               source={require("../assets/images/cam.png")}
+                               style={styles.iconImage}
+                             />
+                           </TouchableOpacity>
+             
+                           <TouchableOpacity style={styles.galleryButton}>
+                             <Image
+                               source={require("../assets/images/gal.png")}
+                               style={styles.iconImage}
+                             />
+                           </TouchableOpacity>
             </View>
           </View>
         ) : (
@@ -89,13 +88,19 @@ export default function DiseaseDetectionScreen() {
             </View>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.cameraButton}>
-                <Text style={styles.cameraIcon}>📷</Text>
-              </TouchableOpacity>
+               <TouchableOpacity style={styles.cameraButton}>
+                              <Image
+                                source={require("../assets/images/cam.png")}
+                                style={styles.iconImage}
+                              />
+                            </TouchableOpacity>
               
-              <TouchableOpacity style={styles.galleryButton}>
-                <Text style={styles.galleryIcon}>🖼️</Text>
-              </TouchableOpacity>
+                            <TouchableOpacity style={styles.galleryButton}>
+                              <Image
+                                source={require("../assets/images/gal.png")}
+                                style={styles.iconImage}
+                              />
+                            </TouchableOpacity>
             </View>
             
             <TouchableOpacity style={styles.moreInfoButton}>
@@ -114,11 +119,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },iconImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
   },
   header: {
     backgroundColor: '#00BFA5',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderRadius:40,
+   justifyContent:"center",
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -126,11 +136,13 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   backArrow: {
+    
     fontSize: 24,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
   headerTitle: {
+    paddingTop:30,
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
@@ -138,7 +150,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    paddingBottom: 100, // Extra padding for bottom navigation
+    paddingBottom: 100, 
   },
   initialState: {
     flex: 1,
@@ -149,19 +161,17 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   leafIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 180,
+    height: 180,
+    resizeMode: 'contain',
   },
   leafEmoji: {
     fontSize: 40,
   },
   scanText: {
     fontSize: 18,
-    color: '#00BFA5',
+    backgroundColor:"#00BFA5",
+    color: '#FFFFFF',
     marginBottom: 40,
     fontWeight: '500',
   },
@@ -172,16 +182,16 @@ const styles = StyleSheet.create({
   cameraButton: {
     width: 60,
     height: 60,
+    right:10,
     borderRadius: 30,
-    backgroundColor: '#00BFA5',
     justifyContent: 'center',
     alignItems: 'center',
   },
   galleryButton: {
     width: 60,
+    left:10,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#2196F3',
     justifyContent: 'center',
     alignItems: 'center',
   },

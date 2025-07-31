@@ -50,7 +50,7 @@ export default function HomeScreen() {
 >
   <TouchableOpacity
     style={styles.cardRow}
-    onPress={() => router.push('/pest-detection')}
+    onPress={() => router.push('/disease-detection')}
   >
     <Image
       source={require('../../assets/images/pot.png')}
@@ -70,7 +70,7 @@ export default function HomeScreen() {
 >
   <TouchableOpacity
     style={styles.cardRow}
-    onPress={() => router.push('/disease-detection')}
+    onPress={() => router.push('/pest-detection')}
   >
     <Image
       source={require('../../assets/images/pestt.png')}
