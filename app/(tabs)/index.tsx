@@ -1,3 +1,7 @@
+import BottomNavigation from '@/components/BottomNavigation';
+import { useFonts } from 'expo-font';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import {
@@ -10,63 +14,78 @@ import {
 } from 'react-native';
 
 export default function HomeScreen() {
+  const [fontsLoaded] = useFonts({
+    GreatVibes: require('../../assets/fonts/GreatVibes-Regular.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return null; 
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.profileButton}
-              onPress={() => router.push('/profile')}
-            >
-              <Text style={styles.profileText}>Profile</Text>
-            </TouchableOpacity>
+            <Image
+              source={require('../../assets/images/tree.png')} 
+              style={styles.imageStyle}
+            />
+            <Text style={styles.cursiveText}>Culture That Unites Us Together</Text>
+            <Text style={styles.subText}>Agriculture</Text>
           </View>
         </View>
 
         {/* Main Services */}
-        <View style={styles.servicesGrid}>
-          <TouchableOpacity 
-            style={[styles.serviceCard, styles.pestDetectionCard]}
-            onPress={() => router.push('/pest-detection')}
-          >
-            <View style={styles.serviceIconContainer}>
-              <View style={styles.targetIcon}>
-                <Text style={styles.targetText}>⊕</Text>
-              </View>
-            </View>
-            <Text style={styles.serviceTitle}>Pest Detection</Text>
-            <Text style={styles.serviceSubtitle}>Detect Fast, Protect Harvest.{'\n'}Earnings Guardian Angel</Text>
-          </TouchableOpacity>
+        <View style={styles.servicesContainer}>
+          <View style={styles.servicesGrid}>
 
-          <TouchableOpacity 
-            style={[styles.serviceCard, styles.diseaseDetectionCard]}
-            onPress={() => router.push('/disease-detection')}
-          >
-            <View style={styles.serviceIconContainer}>
-              <View style={styles.leafIcon}>
-                <Text style={styles.leafText}>🦠</Text>
-              </View>
-            </View>
-            <Text style={styles.serviceTitle}>Disease Detection</Text>
-            <Text style={styles.serviceSubtitle}>Early Detection, Healthier Crops.{'\n'}Empowering Farmers to Combat{'\n'}Plant Diseases with Precision and{'\n'}Care.</Text>
-          </TouchableOpacity>
+            {/* Pest Detection Card */}
+           <LinearGradient
+  colors={['#000000', '#4CAF50']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.serviceCard, styles.gradientCard]}
+>
+  <TouchableOpacity
+    style={styles.cardRow}
+    onPress={() => router.push('/pest-detection')}
+  >
+    <Image
+      source={require('../../assets/images/pot.png')}
+      style={styles.cardImage}
+    />
+    <Text style={styles.serviceTitle}>Plant Disease{'\n'}    Detection</Text>
+  </TouchableOpacity>
+</LinearGradient>
 
-          <TouchableOpacity 
-            style={[styles.serviceCard, styles.pesticideCard]}
-            onPress={() => router.push('/pesticide-recognition')}
-          >
-            <View style={styles.serviceIconContainer}>
-              <View style={styles.pesticideIcon}>
-                <Text style={styles.pesticideText}>🚿</Text>
-              </View>
-            </View>
-            <Text style={styles.serviceTitle}>Pesticide Recondition</Text>
-            <Text style={styles.serviceSubtitle}>Safeguard Your Crops, Ensure{'\n'}Growth, with Our Trusted,{'\n'}Eco-Friendly Pesticides. Harvest{'\n'}with Confidence!</Text>
-          </TouchableOpacity>
+
+            {/* Disease Detection Card */}
+           <LinearGradient
+  colors={['#000000', '#4CAF50']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 1 }}
+  style={[styles.serviceCard, styles.gradientCard]}
+>
+  <TouchableOpacity
+    style={styles.cardRow}
+    onPress={() => router.push('/disease-detection')}
+  >
+    <Image
+      source={require('../../assets/images/pestt.png')}
+      style={styles.cardImage}
+    />
+    <Text style={styles.serviceTitle}>    Pest{'\n'}Detection</Text>
+  </TouchableOpacity>
+</LinearGradient>
+
+
+          </View>
         </View>
       </ScrollView>
+
+      <BottomNavigation />
     </SafeAreaView>
   );
 }
@@ -75,51 +94,64 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+    paddingBottom:-20,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 20,
   },
   header: {
     backgroundColor: '#00BFA5',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingTop:35,
+    borderRadius: 30,
   },
   headerContent: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
-  profileButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  profileText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  subText: {
+    color: '#201f1fff',
+    fontSize: 29,
+    opacity: 0.9,
+    bottom:10,
     fontWeight: '500',
   },
-  servicesGrid: {
+  cursiveText: {
+    fontFamily: 'GreatVibes',
+    fontSize: 24,
+    width: 600,
+    letterSpacing:2.5,
+    fontWeight:'400',
+    color: '#000000',
+    marginTop: 0,
+    textAlign: 'center',
+  },
+  servicesContainer: {
     padding: 20,
-    gap: 20,
+    left: 30,
+    width:400,
+    height:150,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 15,
+  },
+  servicesGrid: {
+    gap: 15,
+    marginBottom: 30,
   },
   serviceCard: {
     borderRadius: 20,
-    padding: 25,
-    minHeight: 180,
+    padding: 20,
+    minHeight: 80,
   },
-  pestDetectionCard: {
-    backgroundColor: '#FFFFFF',
+  gradientCard: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-  },
-  diseaseDetectionCard: {
-    backgroundColor: '#4CAF50',
-  },
-  pesticideCard: {
-    backgroundColor: '#2196F3',
   },
   serviceIconContainer: {
     marginBottom: 15,
@@ -150,26 +182,39 @@ const styles = StyleSheet.create({
   leafText: {
     fontSize: 24,
   },
-  pesticideIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pesticideText: {
-    fontSize: 24,
-  },
   serviceTitle: {
-    fontSize: 20,
+    fontSize: 28,
+    justifyContent:"center",
+    left:20,
+    alignItems:'flex-end',
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333333',
+    color: '#FFFFFF',
   },
   serviceSubtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#666666',
+    color: '#DDDDDD',
   },
+  imageStyle: {
+    width: 80,
+    height: 80,
+    right: 0,
+    paddingHorizontal: 0,
+    resizeMode: 'contain',
+    borderRadius: 75,
+  },
+  cardRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 16,
+},
+
+cardImage: {
+  width: 80,
+  height: 80,
+  borderRadius: 10,
+  resizeMode: 'contain',
+},
+
 });

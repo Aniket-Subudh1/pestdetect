@@ -19,9 +19,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="feed" options={{ headerShown: false }} />
         <Stack.Screen name="pest-detection" options={{ headerShown: false }} />
         <Stack.Screen name="disease-detection" options={{ headerShown: false }} />
         <Stack.Screen name="pesticide-recognition" options={{ headerShown: false }} />

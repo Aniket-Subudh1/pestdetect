@@ -1,89 +1,117 @@
+// app/profile.tsx
+import BottomNavigation from '@/components/BottomNavigation';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function ProfileScreen() {
+  const handleLogout = () => {
+    // Add logout logic here
+    router.replace('/login');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profile</Text>
+        </View>
 
-      <View style={styles.content}>
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>R</Text>
+        <View style={styles.content}>
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>R</Text>
+              </View>
+              <TouchableOpacity style={styles.editIcon}>
+                <Text style={styles.editIconText}>✎</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.editIcon}>
-              <Text style={styles.editIconText}>✎</Text>
+
+            <Text style={styles.userName}>Rakesh Kumar Ray</Text>
+            
+            <View style={styles.contactInfo}>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>✉</Text>
+                <Text style={styles.contactText}>rakeshrayk@gmail.com</Text>
+              </View>
+              
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>📞</Text>
+                <Text style={styles.contactText}>+91-8895883488</Text>
+              </View>
+              
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>📍</Text>
+                <Text style={styles.contactText}>Bhubaneswar, Odisha</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Profile Options */}
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity style={styles.optionItem}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>🔔</Text>
+                <Text style={styles.optionText}>Notifications</Text>
+              </View>
+              <Text style={styles.optionArrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionItem}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>📊</Text>
+                <Text style={styles.optionText}>My Scan History</Text>
+              </View>
+              <Text style={styles.optionArrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionItem}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>⚙️</Text>
+                <Text style={styles.optionText}>Settings</Text>
+              </View>
+              <Text style={styles.optionArrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionItem}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>❓</Text>
+                <Text style={styles.optionText}>Help & Support</Text>
+              </View>
+              <Text style={styles.optionArrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionItem}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>ℹ️</Text>
+                <Text style={styles.optionText}>About</Text>
+              </View>
+              <Text style={styles.optionArrow}>›</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.userName}>Rakesh Kumar Ray</Text>
-          
-          <View style={styles.contactInfo}>
-            <View style={styles.contactItem}>
-              <Text style={styles.contactIcon}>✉</Text>
-              <Text style={styles.contactText}>rakeshrayk@gmail.com</Text>
-            </View>
-            
-            <View style={styles.contactItem}>
-              <Text style={styles.contactIcon}>📞</Text>
-              <Text style={styles.contactText}>+91-8895883488</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.logoutButton}>
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutButtonText}>LOGOUT</Text>
           </TouchableOpacity>
+
+          {/* Bottom indicator */}
+          <View style={styles.bottomIndicator}>
+            <Text style={styles.loginSuccess}>● Login Successfully !!</Text>
+          </View>
         </View>
+      </ScrollView>
 
-        {/* Services Grid */}
-        <View style={styles.servicesContainer}>
-          <TouchableOpacity 
-            style={styles.serviceCard}
-            onPress={() => router.push('/agriculture')}
-          >
-            <View style={styles.serviceIcon}>
-              <Text style={styles.serviceEmoji}>🌱</Text>
-            </View>
-            <Text style={styles.serviceTitle}>Culture That Unites Us Together</Text>
-            <Text style={styles.serviceSubtitle}>Agriculture</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.serviceCard}
-            onPress={() => router.push('/plant-disease')}
-          >
-            <View style={styles.serviceIcon}>
-              <Text style={styles.serviceEmoji}>🌿</Text>
-            </View>
-            <Text style={styles.serviceTitle}>Plant Disease Detection</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.serviceCard}
-            onPress={() => router.push('/pest-detection')}
-          >
-            <View style={styles.serviceIcon}>
-              <Text style={styles.serviceEmoji}>🐛</Text>
-            </View>
-            <Text style={styles.serviceTitle}>Pest Detection</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Bottom indicator */}
-        <View style={styles.bottomIndicator}>
-          <Text style={styles.loginSuccess}>● Login Successfully !!</Text>
-        </View>
-      </View>
+      <BottomNavigation />
     </SafeAreaView>
   );
 }
@@ -92,6 +120,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
     backgroundColor: '#00BFA5',
@@ -107,6 +138,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    paddingBottom: 100,
   },
   profileCard: {
     backgroundColor: '#FFFFFF',
@@ -160,7 +192,6 @@ const styles = StyleSheet.create({
   },
   contactInfo: {
     width: '100%',
-    marginBottom: 30,
   },
   contactItem: {
     flexDirection: 'row',
@@ -176,57 +207,59 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
   },
+  optionsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  optionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionIcon: {
+    fontSize: 20,
+    marginRight: 15,
+    width: 25,
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333333',
+    fontWeight: '500',
+  },
+  optionArrow: {
+    fontSize: 20,
+    color: '#CCCCCC',
+    fontWeight: 'bold',
+  },
   logoutButton: {
     backgroundColor: '#00BFA5',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 20,
+    paddingVertical: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  servicesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  serviceCard: {
-    width: '48%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  serviceIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  serviceEmoji: {
-    fontSize: 24,
-  },
-  serviceTitle: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontWeight: '500',
-    marginBottom: 5,
-  },
-  serviceSubtitle: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
   bottomIndicator: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   loginSuccess: {
     fontSize: 14,

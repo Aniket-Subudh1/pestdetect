@@ -1,11 +1,13 @@
+// app/disease-detection.tsx
+import BottomNavigation from '@/components/BottomNavigation';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface DetectedDisease {
@@ -103,23 +105,7 @@ export default function DiseaseDetectionScreen() {
         )}
       </View>
       
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navText}>Menu</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>👁️</Text>
-          <Text style={styles.navText}>View</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavigation />
     </SafeAreaView>
   );
 }
@@ -152,6 +138,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    paddingBottom: 100, // Extra padding for bottom navigation
   },
   initialState: {
     flex: 1,
@@ -279,22 +266,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'center',
     fontWeight: '500',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#000000',
-    paddingVertical: 10,
-    justifyContent: 'space-around',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navIcon: {
-    fontSize: 20,
-    marginBottom: 5,
-  },
-  navText: {
-    fontSize: 12,
-    color: '#FFFFFF',
   },
 });

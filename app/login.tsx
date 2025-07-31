@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -13,15 +14,37 @@ import {
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    
+  
+    setTimeout(() => {
+      setIsLoading(false);
+      // Navigate to main app
+      router.replace('/(tabs)');
+    }, 1000);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.curvedContainer}>
           <Image
-          source={require('../assets/images/login.png')} 
-          style={styles.imageStyle}
-        />
+            source={require('../assets/images/login.png')} 
+            style={styles.imageStyle}
+          />
           <Text style={styles.accountText}>Already{'\n'}have an{'\n'}Account?</Text>
         </View>
 
@@ -33,9 +56,10 @@ export default function LoginScreen() {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder=""
+              placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
             />
           </View>
 
@@ -45,8 +69,9 @@ export default function LoginScreen() {
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder=""
+              placeholder="Enter your password"
               secureTextEntry
+              autoComplete="password"
             />
           </View>
 
@@ -54,8 +79,14 @@ export default function LoginScreen() {
             <Text style={styles.forgotPasswordText}>Forgot Password</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton}>
-            <Text style={styles.loginButtonText}>LOGIN</Text>
+          <TouchableOpacity 
+            style={[styles.loginButton, isLoading && styles.loginButtonDisabled]} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.loginButtonText}>
+              {isLoading ? 'LOGGING IN...' : 'LOGIN'}
+            </Text>
           </TouchableOpacity>
 
           <Link href="/register" asChild>
@@ -90,30 +121,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     height: 280,
     marginBottom: 40,
-  },
-  curvedBackground: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 280,
-    height: 200,
-    backgroundColor: '#00BFA5',
-    borderBottomLeftRadius: 100,
-    borderTopLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  peopleContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 60,
-    width: 120,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  peopleEmoji: {
-    fontSize: 40,
   },
   accountText: {
     position: 'absolute',
@@ -153,19 +160,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginButton: {
-    
     backgroundColor: '#00BFA5',
     paddingVertical: 12,
     borderRadius: 25,
-    right:  -90,
-    width :150,
+    right: -90,
+    width: 150,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
   imageStyle: {
     width: 350,
     height: 250,
-    right : -90,
+    right: -90,
     resizeMode: 'contain',
     borderRadius: 75,
   },
@@ -180,7 +189,7 @@ const styles = StyleSheet.create({
   registerLinkText: {
     color: '#00BFA5',
     fontSize: 16,
-   fontWeight: 'bold',
+    fontWeight: 'bold',
   },
   bottomCurve: {
     position: 'absolute',
@@ -208,12 +217,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   verticalLine: {
-  position: 'absolute',
-  bottom: 0, 
-  right: 0,
-  width: 10,
-  borderTopLeftRadius:50,
-  height: 810,
-  backgroundColor: '#00BFA5',
-},
+    position: 'absolute',
+    bottom: 0, 
+    right: 0,
+    width: 10,
+    borderTopLeftRadius: 50,
+    height: 810,
+    backgroundColor: '#00BFA5',
+  },
 });

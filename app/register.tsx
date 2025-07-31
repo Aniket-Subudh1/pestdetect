@@ -1,13 +1,15 @@
+// app/register.tsx
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function RegisterScreen() {
@@ -15,6 +17,46 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !mobile.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (mobile.length < 10) {
+      Alert.alert('Error', 'Please enter a valid mobile number');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate registration process (replace with your actual registration logic)
+    setTimeout(() => {
+      setIsLoading(false);
+      Alert.alert(
+        'Success', 
+        'Registration successful! Please login to continue.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/login')
+          }
+        ]
+      );
+    }, 1000);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,10 +72,10 @@ export default function RegisterScreen() {
           
           <View style={styles.titleSection}>
             <Text style={styles.welcomeText}>Here&apos;s{'\n'}your first{'\n'}step with{'\n'}us!</Text>
-              <Image
-                       source={require('../assets/images/register.png')} 
-                       style={styles.imageStyle}
-                     />
+            <Image
+              source={require('../assets/images/register.png')} 
+              style={styles.imageStyle}
+            />
           </View>
         </View>
 
@@ -45,7 +87,8 @@ export default function RegisterScreen() {
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder=""
+              placeholder="Enter your full name"
+              autoComplete="name"
             />
           </View>
 
@@ -55,9 +98,10 @@ export default function RegisterScreen() {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder=""
+              placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
             />
           </View>
 
@@ -67,8 +111,9 @@ export default function RegisterScreen() {
               style={styles.input}
               value={mobile}
               onChangeText={setMobile}
-              placeholder=""
+              placeholder="Enter your mobile number"
               keyboardType="phone-pad"
+              autoComplete="tel"
             />
           </View>
 
@@ -78,15 +123,30 @@ export default function RegisterScreen() {
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder=""
+              placeholder="Create a password (min 6 characters)"
               secureTextEntry
+              autoComplete="password-new"
             />
           </View>
 
-          <TouchableOpacity style={styles.registerButton}>
-            <Text style={styles.registerButtonText}>REGISTER</Text>
+          <TouchableOpacity 
+            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]} 
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <Text style={styles.registerButtonText}>
+              {isLoading ? 'REGISTERING...' : 'REGISTER'}
+            </Text>
           </TouchableOpacity>
-           <View style={styles.verticalLine} />
+          
+          <TouchableOpacity 
+            style={styles.loginLink}
+            onPress={() => router.replace('/login')}
+          >
+            <Text style={styles.loginLinkText}>Already have an account? Login</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.verticalLine} />
         </View>
       </View>
     </SafeAreaView>
@@ -125,28 +185,15 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     right: -10,
-
     fontWeight: 'bold',
     color: '#FFFFFF',
     lineHeight: 25,
   },
-  peopleContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 60,
-    width: 120,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  peopleEmoji: {
-    fontSize: 40,
-  },
   formContainer: {
     flex: 1,
-    width:350,
-    right:-20,
-    justifyContent:'center',
+    width: 350,
+    right: -20,
+    justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -173,31 +220,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#00BFA5',
     paddingVertical: 12,
     borderRadius: 25,
-    width:180,
-    right:-50,
+    width: 180,
+    right: -50,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 15,
+  },
+  registerButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
   registerButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
+  loginLink: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  loginLinkText: {
+    color: '#00BFA5',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   imageStyle: {
     width: 200,
     height: 200,
-    right :0,
+    right: 0,
     top: -60,
     resizeMode: 'contain',
     borderRadius: 75,
   },
   verticalLine: {
-  position: 'absolute',
-  bottom: -10, 
-  left: -80,
-  width: 100,
-  borderRadius:50,
-  height: 100,
-  backgroundColor: '#FFFFFF',
-},
+    position: 'absolute',
+    bottom: -10, 
+    left: -80,
+    width: 100,
+    borderRadius: 50,
+    height: 100,
+    backgroundColor: '#FFFFFF',
+  },
 });
