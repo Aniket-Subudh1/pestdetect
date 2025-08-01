@@ -1,41 +1,33 @@
+// services/api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Update this with your actual server IP
+const API_BASE_URL = 'http://192.168.0.192:5000/api'; 
 
-const API_BASE_URL = 'http://192.168.133.105:5000/api'
-
-
-class ApiService {
+class APIService {
   constructor() {
     this.baseURL = API_BASE_URL;
     this.token = null;
   }
 
-  // Set authentication token
-  async setToken(token) {
-    this.token = token;
-    if (token) {
-      await AsyncStorage.setItem('userToken', token);
-    } else {
-      await AsyncStorage.removeItem('userToken');
-    }
-  }
-
-  // Get authentication token
   async getToken() {
     if (!this.token) {
-      this.token = await AsyncStorage.getItem('userToken');
+      this.token = await AsyncStorage.getItem('authToken');
     }
     return this.token;
   }
 
-  // Check if user is logged in
-  async isLoggedIn() {
-    const token = await this.getToken();
-    return !!token;
+  async setToken(token) {
+    this.token = token;
+    await AsyncStorage.setItem('authToken', token);
   }
 
-  // Make HTTP request
-  async request(endpoint, options = {}) {
+  async clearToken() {
+    this.token = null;
+    await AsyncStorage.removeItem('authToken');
+  }
+
+  async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = await this.getToken();
 
@@ -43,25 +35,37 @@ class ApiService {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,
     };
 
-    // Handle FormData (for file uploads)
-    if (options.body instanceof FormData) {
-      delete config.headers['Content-Type'];
-    } else if (config.body && typeof config.body === 'object') {
+    if (token && !options.skipAuth) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (config.body && typeof config.body === 'object') {
       config.body = JSON.stringify(config.body);
     }
 
     try {
-      console.log(`API Request: ${config.method} ${url}`);
-      const response = await fetch(url, config);
-      const data = await response.json();
+      console.log(`Making ${config.method} request to:`, url);
+      if (config.body) {
+        console.log('Request body:', JSON.parse(config.body));
+      }
 
-      console.log(`API Response: ${response.status}`, data);
+      const response = await fetch(url, config);
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const textResponse = await response.text();
+        data = { message: textResponse };
+      }
+
+      console.log('Response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -69,175 +73,189 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('API Request Error:', error);
+      console.error(`API Error for ${endpoint}:`, error);
       throw error;
     }
   }
 
-  // GET request
-  async get(endpoint, options = {}) {
-    return this.request(endpoint, { ...options, method: 'GET' });
-  }
+  // Form data request for file uploads
+  async makeFormRequest(endpoint, formData, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const token = await this.getToken();
 
-  // POST request
-  async post(endpoint, data, options = {}) {
-    return this.request(endpoint, {
-      ...options,
+    const config = {
       method: 'POST',
-      body: data,
-    });
-  }
-
-  // PUT request
-  async put(endpoint, data, options = {}) {
-    return this.request(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: data,
-    });
-  }
-
-  // DELETE request
-  async delete(endpoint, options = {}) {
-    return this.request(endpoint, { ...options, method: 'DELETE' });
-  }
-
-  // Upload file
-  async uploadFile(endpoint, file, additionalData = {}) {
-    const formData = new FormData();
-    formData.append('plantImage', {
-      uri: file.uri,
-      type: file.type || 'image/jpeg',
-      name: file.fileName || `plant_image_${Date.now()}.jpg`,
-    });
-
-    // Add additional data
-    Object.keys(additionalData).forEach(key => {
-      if (typeof additionalData[key] === 'object') {
-        formData.append(key, JSON.stringify(additionalData[key]));
-      } else {
-        formData.append(key, additionalData[key]);
-      }
-    });
-
-    return this.post(endpoint, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        // Don't set Content-Type for FormData, let the browser set it
+        ...options.headers,
       },
-    });
+      body: formData,
+      ...options,
+    };
+
+    if (token && !options.skipAuth) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    try {
+      console.log(`Making form request to:`, url);
+      const response = await fetch(url, config);
+      
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = { message: await response.text() };
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`API Form Error for ${endpoint}:`, error);
+      throw error;
+    }
   }
 }
 
-// Create API instance
-const apiService = new ApiService();
+const apiService = new APIService();
 
-// Auth API methods
+// Authentication API
 export const authAPI = {
-  // Register user
-  register: async (userData) => {
-    return apiService.post('/auth/register', userData);
+  async register(userData) {
+    return await apiService.makeRequest('/auth/register', {
+      method: 'POST',
+      body: userData,
+      skipAuth: true,
+    });
   },
 
-  // Verify email with OTP
-  verifyEmail: async (email, otp) => {
-    return apiService.post('/auth/verify-email', { email, otp });
+  async verifyEmail(email, otp) {
+    return await apiService.makeRequest('/auth/verify-email', {
+      method: 'POST',
+      body: { email, otp },
+      skipAuth: true,
+    });
   },
 
-  // Resend verification email
-  resendVerification: async (email) => {
-    return apiService.post('/auth/resend-verification', { email });
+  async resendVerification(email) {
+    return await apiService.makeRequest('/auth/resend-verification', {
+      method: 'POST',
+      body: { email },
+      skipAuth: true,
+    });
   },
 
-  // Login user
-  login: async (email, password) => {
-    const response = await apiService.post('/auth/login', { email, password });
+  async login(email, password) {
+    const response = await apiService.makeRequest('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+      skipAuth: true,
+    });
+
     if (response.success && response.token) {
       await apiService.setToken(response.token);
     }
+
     return response;
   },
 
-  // Forgot password
-  forgotPassword: async (email) => {
-    return apiService.post('/auth/forgot-password', { email });
+  async forgotPassword(email) {
+    return await apiService.makeRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+      skipAuth: true,
+    });
   },
 
-  // Reset password with OTP
-  resetPassword: async (email, otp, newPassword) => {
-    return apiService.post('/auth/reset-password', { email, otp, newPassword });
+  async resetPassword(email, otp, newPassword) {
+    return await apiService.makeRequest('/auth/reset-password', {
+      method: 'POST',
+      body: { email, otp, newPassword },
+      skipAuth: true,
+    });
   },
 
-  // Get user profile
-  getProfile: async () => {
-    return apiService.get('/auth/me');
+  async getProfile() {
+    return await apiService.makeRequest('/auth/me');
   },
 
-  // Update profile
-  updateProfile: async (userData) => {
-    return apiService.put('/auth/profile', userData);
+  async updateProfile(userData) {
+    return await apiService.makeRequest('/auth/profile', {
+      method: 'PUT',
+      body: userData,
+    });
   },
 
-  // Change password
-  changePassword: async (currentPassword, newPassword) => {
-    return apiService.put('/auth/change-password', { currentPassword, newPassword });
+  async changePassword(currentPassword, newPassword) {
+    return await apiService.makeRequest('/auth/change-password', {
+      method: 'PUT',
+      body: { currentPassword, newPassword },
+    });
   },
 
-  // Logout
-  logout: async () => {
-    await apiService.setToken(null);
+  async logout() {
+    await apiService.clearToken();
+    return { success: true };
   },
 
-  // Check authentication status
-  isAuthenticated: async () => {
-    return apiService.isLoggedIn();
+  async isAuthenticated() {
+    const token = await apiService.getToken();
+    if (!token) return false;
+
+    try {
+      const response = await apiService.makeRequest('/auth/me');
+      return response.success;
+    } catch (error) {
+      await apiService.clearToken();
+      return false;
+    }
   },
 };
 
-// Detection API methods
+// Detection API
 export const detectionAPI = {
-  // Detect plant disease
-  detectDisease: async (imageFile, location = null) => {
-    const additionalData = {};
-    if (location) {
-      additionalData.location = location;
-    }
-    return apiService.uploadFile('/detection/disease', imageFile, additionalData);
+  async detectDisease(imageFile) {
+    const formData = new FormData();
+    formData.append('plantImage', {
+      uri: imageFile.uri,
+      type: imageFile.type,
+      name: imageFile.fileName || 'disease_image.jpg',
+    });
+
+    return await apiService.makeFormRequest('/detection/disease', formData);
   },
 
-  // Detect plant pest
-  detectPest: async (imageFile, location = null) => {
-    const additionalData = {};
-    if (location) {
-      additionalData.location = location;
-    }
-    return apiService.uploadFile('/detection/pest', imageFile, additionalData);
+  async detectPest(imageFile) {
+    const formData = new FormData();
+    formData.append('plantImage', {
+      uri: imageFile.uri,
+      type: imageFile.type,
+      name: imageFile.fileName || 'pest_image.jpg',
+    });
+
+    return await apiService.makeFormRequest('/detection/pest', formData);
   },
 
-  // Get detection history
-  getHistory: async (page = 1, limit = 10) => {
-    return apiService.get(`/detection/history?page=${page}&limit=${limit}`);
+  async getHistory(page = 1, limit = 10) {
+    return await apiService.makeRequest(`/detection/history?page=${page}&limit=${limit}`);
   },
 
-  // Get single detection
-  getDetection: async (detectionId) => {
-    return apiService.get(`/detection/${detectionId}`);
+  async getDetection(id) {
+    return await apiService.makeRequest(`/detection/${id}`);
   },
 
-  // Delete detection
-  deleteDetection: async (detectionId) => {
-    return apiService.delete(`/detection/${detectionId}`);
+  async deleteDetection(id) {
+    return await apiService.makeRequest(`/detection/${id}`, {
+      method: 'DELETE',
+    });
   },
 
-  // Get detection statistics
-  getStats: async () => {
-    return apiService.get('/detection/stats');
-  },
-};
-
-// Health check
-export const healthAPI = {
-  check: async () => {
-    return apiService.get('/health');
+  async getStats() {
+    return await apiService.makeRequest('/detection/stats');
   },
 };
 

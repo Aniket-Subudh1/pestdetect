@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   StyleSheet,
@@ -8,8 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
+import { OTPInput } from '../components/OTPInput';
 import { authAPI } from '../services/api';
 
 export default function ResetPasswordScreen() {
@@ -18,6 +19,7 @@ export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasOTPError, setHasOTPError] = useState(false);
 
   const validatePassword = () => {
     if (newPassword.length < 6) {
@@ -45,14 +47,25 @@ export default function ResetPasswordScreen() {
     return true;
   };
 
+  const handleOTPChange = (otpValue: string) => {
+    setOtp(otpValue);
+    setHasOTPError(false);
+  };
+
+  const handleOTPComplete = (otpValue: string) => {
+    console.log('OTP completed:', otpValue);
+  };
+
   const handleResetPassword = async () => {
     if (!otp.trim()) {
       Alert.alert('Error', 'Please enter the OTP');
+      setHasOTPError(true);
       return;
     }
 
     if (otp.length !== 6) {
       Alert.alert('Error', 'OTP must be 6 digits');
+      setHasOTPError(true);
       return;
     }
 
@@ -64,24 +77,30 @@ export default function ResetPasswordScreen() {
     if (!validatePassword()) return;
 
     setIsLoading(true);
+    setHasOTPError(false);
     
     try {
-      const response = await authAPI.resetPassword(email, otp, newPassword);
+      console.log('Resetting password:', { email, otp, newPassword: '[HIDDEN]' });
+      
+      const response = await authAPI.resetPassword(email as string, otp, newPassword);
       
       if (response.success) {
         Alert.alert(
           'Password Reset Successful!', 
-          'Your password has been successfully reset. You can now login with your new password.',
+          'Your password has been successfully reset. You are now logged in.',
           [{
-            text: 'Login Now',
-            onPress: () => router.replace('/login')
+            text: 'Continue',
+            onPress: () => router.replace('/(tabs)')
           }]
         );
       }
     } catch (error) {
       console.error('Reset password error:', error);
       
-      if (error instanceof Error && error.message.includes('Invalid or expired')) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('Invalid or expired')) {
+        setHasOTPError(true);
         Alert.alert(
           'Invalid OTP', 
           'The OTP is invalid or has expired. Please request a new password reset.',
@@ -93,7 +112,7 @@ export default function ResetPasswordScreen() {
       } else {
         Alert.alert(
           'Reset Failed', 
-          (error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+          errorMessage || 'Something went wrong. Please try again.'
         );
       }
     } finally {
@@ -120,17 +139,18 @@ export default function ResetPasswordScreen() {
         </View>
 
         <View style={styles.formSection}>
-          <View style={styles.inputContainer}>
+          <View style={styles.otpContainer}>
             <Text style={styles.label}>Reset Code</Text>
-            <TextInput
-              style={styles.otpInput}
+            <OTPInput
+              length={6}
               value={otp}
-              onChangeText={setOtp}
-              placeholder="000000"
+              onChangeText={handleOTPChange}
+              onComplete={handleOTPComplete}
+              disabled={isLoading}
+              hasError={hasOTPError}
+              autoFocus={true}
               keyboardType="number-pad"
-              maxLength={6}
-              editable={!isLoading}
-              textAlign="center"
+              containerStyle={styles.otpInputContainer}
             />
           </View>
 
@@ -143,6 +163,7 @@ export default function ResetPasswordScreen() {
               placeholder="Enter new password"
               secureTextEntry
               editable={!isLoading}
+              autoComplete="password-new"
             />
           </View>
 
@@ -155,6 +176,7 @@ export default function ResetPasswordScreen() {
               placeholder="Confirm new password"
               secureTextEntry
               editable={!isLoading}
+              autoComplete="password-new"
             />
           </View>
 
@@ -227,8 +249,8 @@ const styles = StyleSheet.create({
   formSection: {
     flex: 1,
   },
-  inputContainer: {
-    marginBottom: 25,
+  otpContainer: {
+    marginBottom: 30,
   },
   label: {
     fontSize: 16,
@@ -236,22 +258,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '500',
   },
+  otpInputContainer: {
+    paddingHorizontal: 10,
+  },
+  inputContainer: {
+    marginBottom: 25,
+  },
   input: {
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
     paddingVertical: 12,
     fontSize: 16,
     color: '#333333',
-  },
-  otpInput: {
-    borderWidth: 2,
-    borderColor: '#00BFA5',
-    borderRadius: 15,
-    paddingVertical: 15,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    letterSpacing: 4,
   },
   resetButton: {
     backgroundColor: '#00BFA5',

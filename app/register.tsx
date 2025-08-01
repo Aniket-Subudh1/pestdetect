@@ -75,23 +75,38 @@ export default function RegisterScreen() {
         password: password
       };
 
+      console.log('Registering user:', { ...userData, password: '[HIDDEN]' });
+      
       const response = await authAPI.register(userData);
       
       if (response.success) {
-        Alert.alert(
-          'Registration Successful!', 
-          'Please check your email for verification code.',
-          [{
-            text: 'OK',
-            onPress: () => router.push({
-              pathname: '/verify-email',
-              params: { 
-                email: userData.email,
-                name: userData.name 
-              }
-            })
-          }]
-        );
+        if (response.data.needsVerification) {
+          // Email verification is required
+          Alert.alert(
+            'Registration Successful!', 
+            'Please check your email for the verification code.',
+            [{
+              text: 'Verify Now',
+              onPress: () => router.push({
+                pathname: '/verify-email',
+                params: { 
+                  email: userData.email,
+                  name: userData.name 
+                }
+              })
+            }]
+          );
+        } else {
+          // User is automatically logged in (no email verification needed)
+          Alert.alert(
+            'Registration Successful!', 
+            'Welcome to PestDetect! You have been automatically logged in.',
+            [{
+              text: 'Continue',
+              onPress: () => router.replace('/(tabs)')
+            }]
+          );
+        }
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -209,6 +224,14 @@ export default function RegisterScreen() {
             )}
           </TouchableOpacity>
           
+          <TouchableOpacity 
+            style={styles.loginLink}
+            onPress={() => router.push('/login')}
+            disabled={isLoading}
+          >
+            <Text style={styles.loginLinkText}>Already have an account? Login</Text>
+          </TouchableOpacity>
+          
           <View style={styles.verticalLine} />
         </View>
       </View>
@@ -295,6 +318,15 @@ const styles = StyleSheet.create({
   registerButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loginLink: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  loginLinkText: {
+    color: '#00BFA5',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   imageStyle: {

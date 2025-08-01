@@ -14,10 +14,10 @@ import {
 import { authAPI } from '../services/api';
 
 interface User {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   mobile?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export default function ProfileScreen() {
@@ -166,58 +166,7 @@ export default function ProfileScreen() {
                 <Text style={styles.contactIcon}>📞</Text>
                 <Text style={styles.contactText}>{user.mobile || 'Not provided'}</Text>
               </View>
-
-              <View style={styles.contactItem}>
-                <Text style={styles.contactIcon}>📅</Text>
-                <Text style={styles.contactText}>
-                  Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Profile Options */}
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={handleEditProfile}
-            >
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>👤</Text>
-                <Text style={styles.optionText}>Edit Profile</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={handleChangePassword}
-            >
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>🔒</Text>
-                <Text style={styles.optionText}>Change Password</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.optionItem}
-              onPress={() => router.push('/detection/history')}
-            >
-              <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>📊</Text>
-                <Text style={styles.optionText}>Detection History</Text>
-              </View>
-              <Text style={styles.optionArrow}>›</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Logout Button */}
-          <TouchableOpacity 
+<TouchableOpacity 
             style={[styles.logoutButton, isLoggingOut && styles.logoutButtonDisabled]}
             onPress={handleLogout}
             disabled={isLoggingOut}
@@ -228,11 +177,10 @@ export default function ProfileScreen() {
               <Text style={styles.logoutButtonText}>LOGOUT</Text>
             )}
           </TouchableOpacity>
-
-          {/* App Info */}
-          <View style={styles.bottomIndicator}>
-            <Text style={styles.loginSuccess}>✓ Logged in successfully</Text>
+              
+            </View>
           </View>
+          
         </View>
       </ScrollView>
 

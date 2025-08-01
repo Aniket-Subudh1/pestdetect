@@ -1,15 +1,16 @@
+// app/verify-email.tsx - Fixed with proper OTP component
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { OTPInput } from '../components/OTPInput';
 import { authAPI } from '../services/api';
 
 export default function VerifyEmailScreen() {
@@ -18,6 +19,7 @@ export default function VerifyEmailScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -26,34 +28,54 @@ export default function VerifyEmailScreen() {
     }
   }, [countdown]);
 
-  const handleVerifyEmail = async () => {
-    if (!otp.trim()) {
+  const handleOTPChange = (otpValue: string) => {
+    setOtp(otpValue);
+    setHasError(false);
+  };
+
+  const handleOTPComplete = (otpValue: string) => {
+    // Auto-verify when OTP is complete
+    if (otpValue.length === 6) {
+      handleVerifyEmail(otpValue);
+    }
+  };
+
+  const handleVerifyEmail = async (otpToVerify?: string) => {
+    const otpValue = otpToVerify || otp;
+    
+    if (!otpValue.trim()) {
       Alert.alert('Error', 'Please enter the OTP');
+      setHasError(true);
       return;
     }
 
-    if (otp.length !== 6) {
+    if (otpValue.length !== 6) {
       Alert.alert('Error', 'OTP must be 6 digits');
+      setHasError(true);
       return;
     }
 
     setIsLoading(true);
+    setHasError(false);
     
     try {
-      const response = await authAPI.verifyEmail(email, otp);
+      console.log('Verifying email with OTP:', { email, otp: otpValue });
+      
+      const response = await authAPI.verifyEmail(email as string, otpValue);
       
       if (response.success) {
         Alert.alert(
           'Email Verified!', 
-          'Your email has been successfully verified. You can now login.',
+          'Your email has been successfully verified. You are now logged in.',
           [{
-            text: 'Login Now',
-            onPress: () => router.replace('/login')
+            text: 'Continue',
+            onPress: () => router.replace('/(tabs)')
           }]
         );
       }
     } catch (error) {
       console.error('Email verification error:', error);
+      setHasError(true);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
@@ -81,9 +103,12 @@ export default function VerifyEmailScreen() {
     if (countdown > 0) return;
 
     setIsResending(true);
+    setHasError(false);
     
     try {
-      const response = await authAPI.resendVerification(email);
+      console.log('Resending OTP for email:', email);
+      
+      const response = await authAPI.resendVerification(email as string);
       
       if (response.success) {
         Alert.alert('OTP Sent', 'A new OTP has been sent to your email.');
@@ -93,10 +118,23 @@ export default function VerifyEmailScreen() {
     } catch (error) {
       console.error('Resend OTP error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      Alert.alert(
-        'Resend Failed', 
-        errorMessage || 'Failed to resend OTP. Please try again.'
-      );
+      
+      // Check if it's auto-verified
+      if (errorMessage.includes('automatically verified')) {
+        Alert.alert(
+          'Already Verified',
+          'Your email has been automatically verified. You can now login.',
+          [{
+            text: 'Login',
+            onPress: () => router.replace('/login')
+          }]
+        );
+      } else {
+        Alert.alert(
+          'Resend Failed', 
+          errorMessage || 'Failed to resend OTP. Please try again.'
+        );
+      }
     } finally {
       setIsResending(false);
     }
@@ -122,23 +160,24 @@ export default function VerifyEmailScreen() {
         </View>
 
         <View style={styles.formSection}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Enter OTP</Text>
-            <TextInput
-              style={styles.otpInput}
+          <View style={styles.otpContainer}>
+            <Text style={styles.label}>Enter Verification Code</Text>
+            <OTPInput
+              length={6}
               value={otp}
-              onChangeText={setOtp}
-              placeholder="000000"
+              onChangeText={handleOTPChange}
+              onComplete={handleOTPComplete}
+              disabled={isLoading || isResending}
+              hasError={hasError}
+              autoFocus={true}
               keyboardType="number-pad"
-              maxLength={6}
-              editable={!isLoading && !isResending}
-              textAlign="center"
+              containerStyle={styles.otpInputContainer}
             />
           </View>
 
           <TouchableOpacity 
             style={[styles.verifyButton, (isLoading || !otp.trim()) && styles.verifyButtonDisabled]} 
-            onPress={handleVerifyEmail}
+            onPress={() => handleVerifyEmail()}
             disabled={isLoading || !otp.trim()}
           >
             {isLoading ? (
@@ -225,7 +264,7 @@ const styles = StyleSheet.create({
   formSection: {
     flex: 1,
   },
-  inputContainer: {
+  otpContainer: {
     marginBottom: 30,
   },
   label: {
@@ -235,15 +274,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-  otpInput: {
-    borderWidth: 2,
-    borderColor: '#00BFA5',
-    borderRadius: 15,
-    paddingVertical: 20,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    letterSpacing: 8,
+  otpInputContainer: {
+    paddingHorizontal: 10,
   },
   verifyButton: {
     backgroundColor: '#00BFA5',
