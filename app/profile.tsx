@@ -89,20 +89,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleEditProfile = () => {
-    router.push({
-      pathname: '/edit-profile',
-      params: { 
-        name: user?.name || '',
-        email: user?.email || '',
-        mobile: user?.mobile || ''
-      }
-    });
-  };
 
-  const handleChangePassword = () => {
-    router.push('/change-password');
-  };
 
   if (isLoading) {
     return (
@@ -148,7 +135,6 @@ export default function ProfileScreen() {
               </View>
               <TouchableOpacity 
                 style={styles.editIcon}
-                onPress={handleEditProfile}
               >
                 <Text style={styles.editIconText}>✎</Text>
               </TouchableOpacity>
