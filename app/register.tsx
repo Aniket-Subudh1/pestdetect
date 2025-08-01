@@ -1,8 +1,8 @@
-// app/register.tsx
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   StyleSheet,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { authAPI } from '../services/api';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -19,43 +20,104 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = async () => {
+  const validateInputs = () => {
     if (!name.trim() || !email.trim() || !mobile.trim() || !password.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
-      return;
+      return false;
+    }
+
+    if (name.trim().length < 2) {
+      Alert.alert('Error', 'Name must be at least 2 characters long');
+      return false;
     }
 
     if (!email.includes('@')) {
       Alert.alert('Error', 'Please enter a valid email address');
-      return;
+      return false;
     }
 
     if (mobile.length < 10) {
-      Alert.alert('Error', 'Please enter a valid mobile number');
-      return;
+      Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
+      return false;
     }
 
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
+      return false;
     }
+
+    // Check password strength
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      Alert.alert(
+        'Weak Password', 
+        'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRegister = async () => {
+    if (!validateInputs()) return;
 
     setIsLoading(true);
     
-    // Simulate registration process (replace with your actual registration logic)
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert(
-        'Success', 
-        'Registration successful! Please login to continue.',
-        [
-          {
+    try {
+      const userData = {
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        mobile: mobile.trim(),
+        password: password
+      };
+
+      const response = await authAPI.register(userData);
+      
+      if (response.success) {
+        Alert.alert(
+          'Registration Successful!', 
+          'Please check your email for verification code.',
+          [{
             text: 'OK',
-            onPress: () => router.replace('/login')
-          }
-        ]
-      );
-    }, 1000);
+            onPress: () => router.push({
+              pathname: '/verify-email',
+              params: { 
+                email: userData.email,
+                name: userData.name 
+              }
+            })
+          }]
+        );
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      if (errorMessage.includes('already exists')) {
+        Alert.alert(
+          'Registration Failed', 
+          'An account with this email already exists. Please try logging in instead.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Login', onPress: () => router.push('/login') }
+          ]
+        );
+      } else if (errorMessage.includes('Validation')) {
+        Alert.alert('Validation Error', 'Please check your input and try again.');
+      } else {
+        Alert.alert(
+          'Registration Failed', 
+          errorMessage || 'Something went wrong. Please try again.'
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,6 +128,7 @@ export default function RegisterScreen() {
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
+            disabled={isLoading}
           >
             <Text style={styles.backArrow}>←</Text>
           </TouchableOpacity>
@@ -89,6 +152,7 @@ export default function RegisterScreen() {
               onChangeText={setName}
               placeholder="Enter your full name"
               autoComplete="name"
+              editable={!isLoading}
             />
           </View>
 
@@ -102,6 +166,7 @@ export default function RegisterScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              editable={!isLoading}
             />
           </View>
 
@@ -114,6 +179,8 @@ export default function RegisterScreen() {
               placeholder="Enter your mobile number"
               keyboardType="phone-pad"
               autoComplete="tel"
+              maxLength={10}
+              editable={!isLoading}
             />
           </View>
 
@@ -126,6 +193,7 @@ export default function RegisterScreen() {
               placeholder="Create a password (min 6 characters)"
               secureTextEntry
               autoComplete="password-new"
+              editable={!isLoading}
             />
           </View>
 
@@ -134,12 +202,12 @@ export default function RegisterScreen() {
             onPress={handleRegister}
             disabled={isLoading}
           >
-            <Text style={styles.registerButtonText}>
-              {isLoading ? 'REGISTERING...' : 'REGISTER'}
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.registerButtonText}>REGISTER</Text>
+            )}
           </TouchableOpacity>
-          
-         
           
           <View style={styles.verticalLine} />
         </View>
@@ -228,15 +296,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  loginLink: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  loginLinkText: {
-    color: '#00BFA5',
-    fontSize: 14,
-    fontWeight: '500',
   },
   imageStyle: {
     width: 200,

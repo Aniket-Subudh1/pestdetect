@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   SafeAreaView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { authAPI } from '../services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -29,12 +31,50 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     
-  
-    setTimeout(() => {
+    try {
+      const response = await authAPI.login(email.toLowerCase().trim(), password);
+      
+      if (response.success) {
+        Alert.alert(
+          'Success', 
+          'Login successful!',
+          [{
+            text: 'OK',
+            onPress: () => router.replace('/(tabs)')
+          }]
+        );
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      if (error instanceof Error && error.message.includes('verify your email')) {
+        Alert.alert(
+          'Email Verification Required', 
+          'Please verify your email before logging in. Check your inbox for the verification code.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Verify Email', 
+              onPress: () => router.push({
+                pathname: '/verify-email',
+                params: { email: email.toLowerCase().trim() }
+              })
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Login Failed', 
+          (error instanceof Error ? error.message : 'An unexpected error occurred') || 'Invalid email or password. Please try again.'
+        );
+      }
+    } finally {
       setIsLoading(false);
-      // Navigate to main app
-      router.replace('/(tabs)');
-    }, 1000);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/forgot-password');
   };
 
   return (
@@ -60,6 +100,7 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              editable={!isLoading}
             />
           </View>
 
@@ -72,10 +113,15 @@ export default function LoginScreen() {
               placeholder="Enter your password"
               secureTextEntry
               autoComplete="password"
+              editable={!isLoading}
             />
           </View>
 
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            onPress={handleForgotPassword}
+            disabled={isLoading}
+          >
             <Text style={styles.forgotPasswordText}>Forgot Password</Text>
           </TouchableOpacity>
 
@@ -84,13 +130,15 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.loginButtonText}>
-              {isLoading ? 'LOGGING IN...' : 'LOGIN'}
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.loginButtonText}>LOGIN</Text>
+            )}
           </TouchableOpacity>
 
           <Link href="/register" asChild>
-            <TouchableOpacity style={styles.registerLink}>
+            <TouchableOpacity style={styles.registerLink} disabled={isLoading}>
               <Text style={styles.registerLinkText}>New User? Register Now</Text>
             </TouchableOpacity>
           </Link>
