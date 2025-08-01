@@ -1,4 +1,3 @@
-// app/verify-email.tsx - Fixed with proper OTP component
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
