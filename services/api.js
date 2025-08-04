@@ -1,11 +1,66 @@
+// services/api.js - CORRECTED VERSION
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_BASE_URL = 'http://192.168.0.192:5000/api'; 
 
 class APIService {
   constructor() {
-    this.baseURL = API_BASE_URL;
+    // FIXED: Properly define API URLs as array
+    this.API_URLS = [
+      'http://10.1.6.253:5000/api',     // Your actual IP from network debug
+      'http://192.168.1.100:5000/api',   // Alternative IP
+      'http://192.168.0.192:5000/api',   // Another alternative
+      'http://localhost:5000/api'        // Fallback for emulator
+    ];
+    
+    this.baseURL = null;
     this.token = null;
+    this.isConnected = false;
+  }
+
+  // FIXED: Auto-detect working API URL
+  async findWorkingAPI() {
+    if (this.baseURL && this.isConnected) {
+      return this.baseURL;
+    }
+
+    console.log('🔍 Testing API connections...');
+    
+    // FIXED: Iterate over the URLs array properly
+    for (let i = 0; i < this.API_URLS.length; i++) {
+      const apiUrl = this.API_URLS[i];
+      try {
+        console.log(`Testing: ${apiUrl}`);
+        
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timeout')), 5000)
+        );
+        
+        const fetchPromise = fetch(`${apiUrl}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        if (response.ok) {
+          console.log(`✅ Connected to: ${apiUrl}`);
+          this.baseURL = apiUrl;
+          this.isConnected = true;
+          return apiUrl;
+        } else {
+          console.log(`❌ Failed: ${apiUrl} - HTTP ${response.status}`);
+        }
+      } catch (error) {
+        console.log(`❌ Failed: ${apiUrl} - ${error.message}`);
+      }
+    }
+    
+    // If no URL works, use the first one and let the error be handled later
+    console.log('⚠️ No working API found, using first URL as fallback');
+    this.baseURL = this.API_URLS[0];
+    return this.baseURL;
   }
 
   async getToken() {
@@ -26,6 +81,9 @@ class APIService {
   }
 
   async makeRequest(endpoint, options = {}) {
+    // Ensure we have a working API URL
+    await this.findWorkingAPI();
+    
     const url = `${this.baseURL}${endpoint}`;
     const token = await this.getToken();
 
@@ -47,12 +105,18 @@ class APIService {
     }
 
     try {
-      console.log(`Making ${config.method} request to:`, url);
+      console.log(`📡 Making ${config.method} request to:`, url);
       if (config.body) {
-        console.log('Request body:', JSON.parse(config.body));
+        console.log('📦 Request body:', JSON.parse(config.body));
       }
 
-      const response = await fetch(url, config);
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
+
+      const fetchPromise = fetch(url, config);
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
       
       let data;
       const contentType = response.headers.get('content-type');
@@ -63,26 +127,41 @@ class APIService {
         data = { message: textResponse };
       }
 
-      console.log('Response:', data);
+      console.log('📨 Response:', {
+        status: response.status,
+        success: data.success,
+        message: data.message
+      });
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
+      this.isConnected = true;
       return data;
     } catch (error) {
-      console.error(`API Error for ${endpoint}:`, error);
+      console.error(`❌ API Error for ${endpoint}:`, error);
+      
+      // If network error, try to reconnect next time
+      if (error.message.includes('Network request failed') || error.message.includes('timeout')) {
+        this.isConnected = false;
+      }
+      
       throw error;
     }
   }
 
   async makeFormRequest(endpoint, formData, options = {}) {
+    // Ensure we have a working API URL
+    await this.findWorkingAPI();
+    
     const url = `${this.baseURL}${endpoint}`;
     const token = await this.getToken();
 
     const config = {
       method: 'POST',
       headers: {
+        // Don't set Content-Type for FormData in React Native
         ...options.headers,
       },
       body: formData,
@@ -94,10 +173,27 @@ class APIService {
     }
 
     try {
-      console.log(`Making form request to:`, url);
-      console.log('FormData entries:', Array.from(formData.entries()));
+      console.log(`📤 Making form request to:`, url);
+      console.log('📋 FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        if (typeof value === 'object' && value.uri) {
+          console.log(`  ${key}:`, {
+            name: value.name,
+            type: value.type,
+            uri: value.uri.substring(0, 50) + '...'
+          });
+        } else {
+          console.log(`  ${key}:`, value);
+        }
+      }
       
-      const response = await fetch(url, config);
+      // Create timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timeout')), 60000)
+      );
+
+      const fetchPromise = fetch(url, config);
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
       
       let data;
       const contentType = response.headers.get('content-type');
@@ -105,19 +201,29 @@ class APIService {
         data = await response.json();
       } else {
         const textData = await response.text();
-        console.log('Non-JSON response:', textData);
+        console.log('📄 Non-JSON response:', textData.substring(0, 200));
         data = { message: textData };
       }
 
-      console.log('Form Response:', data);
+      console.log('📨 Form Response:', {
+        status: response.status,
+        success: data.success,
+        message: data.message
+      });
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
+      this.isConnected = true;
       return data;
     } catch (error) {
-      console.error(`API Form Error for ${endpoint}:`, error);
+      console.error(`❌ API Form Error for ${endpoint}:`, error);
+      
+      if (error.message.includes('Network request failed') || error.message.includes('timeout')) {
+        this.isConnected = false;
+      }
+      
       throw error;
     }
   }
@@ -224,35 +330,66 @@ export const authAPI = {
   },
 };
 
+// Detection API
 export const detectionAPI = {
   async detectDisease(imageFile) {
-    console.log('Creating FormData for disease detection...', imageFile);
+    console.log('🔬 Starting disease detection...');
+    console.log('📷 Image details:', {
+      uri: imageFile.uri ? imageFile.uri.substring(0, 50) + '...' : 'No URI',
+      type: imageFile.type,
+      fileName: imageFile.fileName
+    });
     
     const formData = new FormData();
     
-    formData.append('plantImage', {
+    const fileObject = {
       uri: imageFile.uri,
       type: imageFile.type || 'image/jpeg',
       name: imageFile.fileName || `disease_${Date.now()}.jpg`,
-    });
+    };
 
-    console.log('FormData created successfully');
-    return await apiService.makeFormRequest('/detection/disease', formData);
+    formData.append('plantImage', fileObject);
+
+    console.log('✅ FormData created for disease detection');
+    
+    try {
+      const result = await apiService.makeFormRequest('/detection/disease', formData);
+      console.log('🎉 Disease detection successful');
+      return result;
+    } catch (error) {
+      console.error('💥 Disease detection failed:', error);
+      throw error;
+    }
   },
 
   async detectPest(imageFile) {
-    console.log('Creating FormData for pest detection...', imageFile);
+    console.log('🐛 Starting pest detection...');
+    console.log('📷 Image details:', {
+      uri: imageFile.uri ? imageFile.uri.substring(0, 50) + '...' : 'No URI',
+      type: imageFile.type,
+      fileName: imageFile.fileName
+    });
     
     const formData = new FormData();
     
-    formData.append('plantImage', {
+    const fileObject = {
       uri: imageFile.uri,
       type: imageFile.type || 'image/jpeg',
       name: imageFile.fileName || `pest_${Date.now()}.jpg`,
-    });
+    };
 
-    console.log('FormData created successfully');
-    return await apiService.makeFormRequest('/detection/pest', formData);
+    formData.append('plantImage', fileObject);
+
+    console.log('✅ FormData created for pest detection');
+    
+    try {
+      const result = await apiService.makeFormRequest('/detection/pest', formData);
+      console.log('🎉 Pest detection successful');
+      return result;
+    } catch (error) {
+      console.error('💥 Pest detection failed:', error);
+      throw error;
+    }
   },
 
   async getHistory(page = 1, limit = 10) {
