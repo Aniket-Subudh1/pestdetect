@@ -1,7 +1,5 @@
-// services/api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Update this with your actual server IP
 const API_BASE_URL = 'http://192.168.0.192:5000/api'; 
 
 class APIService {
@@ -78,7 +76,6 @@ class APIService {
     }
   }
 
-  // Form data request for file uploads
   async makeFormRequest(endpoint, formData, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = await this.getToken();
@@ -86,7 +83,6 @@ class APIService {
     const config = {
       method: 'POST',
       headers: {
-        // Don't set Content-Type for FormData, let the browser set it
         ...options.headers,
       },
       body: formData,
@@ -99,6 +95,8 @@ class APIService {
 
     try {
       console.log(`Making form request to:`, url);
+      console.log('FormData entries:', Array.from(formData.entries()));
+      
       const response = await fetch(url, config);
       
       let data;
@@ -106,8 +104,12 @@ class APIService {
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
       } else {
-        data = { message: await response.text() };
+        const textData = await response.text();
+        console.log('Non-JSON response:', textData);
+        data = { message: textData };
       }
+
+      console.log('Form Response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -172,11 +174,17 @@ export const authAPI = {
   },
 
   async resetPassword(email, otp, newPassword) {
-    return await apiService.makeRequest('/auth/reset-password', {
+    const response = await apiService.makeRequest('/auth/reset-password', {
       method: 'POST',
       body: { email, otp, newPassword },
       skipAuth: true,
     });
+
+    if (response.success && response.token) {
+      await apiService.setToken(response.token);
+    }
+
+    return response;
   },
 
   async getProfile() {
@@ -216,27 +224,34 @@ export const authAPI = {
   },
 };
 
-// Detection API
 export const detectionAPI = {
   async detectDisease(imageFile) {
+    console.log('Creating FormData for disease detection...', imageFile);
+    
     const formData = new FormData();
+    
     formData.append('plantImage', {
       uri: imageFile.uri,
-      type: imageFile.type,
-      name: imageFile.fileName || 'disease_image.jpg',
+      type: imageFile.type || 'image/jpeg',
+      name: imageFile.fileName || `disease_${Date.now()}.jpg`,
     });
 
+    console.log('FormData created successfully');
     return await apiService.makeFormRequest('/detection/disease', formData);
   },
 
   async detectPest(imageFile) {
+    console.log('Creating FormData for pest detection...', imageFile);
+    
     const formData = new FormData();
+    
     formData.append('plantImage', {
       uri: imageFile.uri,
-      type: imageFile.type,
-      name: imageFile.fileName || 'pest_image.jpg',
+      type: imageFile.type || 'image/jpeg',
+      name: imageFile.fileName || `pest_${Date.now()}.jpg`,
     });
 
+    console.log('FormData created successfully');
     return await apiService.makeFormRequest('/detection/pest', formData);
   },
 
